@@ -85,6 +85,18 @@ dt{color:var(--muted)} dd{margin:0;min-width:0}
 footer{background:var(--oak-deep);color:var(--paper)}
 footer .wrap{padding-block:28px;font-size:14px}
 
+
+.signature figure{cursor:zoom-in}
+.signature figure:focus-visible{outline:2px solid var(--oak);outline-offset:4px}
+.signature figure img{transition:transform .25s ease}
+.signature figure:hover img{transform:scale(1.03)}
+dialog.zoom{border:0;padding:0;background:transparent;max-width:min(92vw,900px);max-height:92vh;color:#FBF6EA}
+dialog.zoom::backdrop{background:rgba(20,14,8,.86)}
+dialog.zoom img{max-width:100%;max-height:80vh;width:auto;margin:0 auto;object-fit:contain}
+dialog.zoom p{font-family:var(--serif);font-size:20px;text-align:center;margin:12px 0 0}
+dialog.zoom small{display:block;font-family:var(--sans);font-size:14px;opacity:.8}
+dialog.zoom button{position:fixed;top:max(12px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:24px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.signature figure img{transition:none}}
 @media (max-width:760px){
   .about{grid-template-columns:1fr}
   .signature{grid-template-columns:repeat(2,1fr)}
@@ -205,6 +217,24 @@ footer .wrap{padding-block:28px;font-size:14px}
   </dl>
 </div></section>
 
+<dialog class="zoom" id="zoom" aria-label="디저트 사진 크게 보기">
+  <button type="button" id="zoom-close" aria-label="닫기">×</button>
+  <img id="zoom-img" alt="">
+  <p id="zoom-cap"></p>
+</dialog>
+<script>
+(function(){
+  var d=document.getElementById('zoom'),img=document.getElementById('zoom-img'),cap=document.getElementById('zoom-cap');
+  document.querySelectorAll('.signature figure').forEach(function(f){
+    f.tabIndex=0; f.setAttribute('role','button');
+    function open(){var i=f.querySelector('img');img.src=i.src;img.alt=i.alt;cap.innerHTML=f.querySelector('figcaption').innerHTML;d.showModal();}
+    f.addEventListener('click',open);
+    f.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
+  });
+  document.getElementById('zoom-close').addEventListener('click',function(){d.close();});
+  d.addEventListener('click',function(e){if(e.target===d||e.target===img)d.close();});
+})();
+</script>
 <footer><div class="wrap">© 구움별장 Gooum Villa · dessert &amp; coffee</div></footer>
 
 </body>
