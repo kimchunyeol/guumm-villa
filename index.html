@@ -158,6 +158,77 @@ dialog.zoom button{position:fixed;top:max(12px,env(safe-area-inset-top,0px));rig
 }
 </style>
 
+<div id="intro" role="dialog" aria-label="구움별장 입장 화면">
+<style>
+#intro{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#34304A 0%,#1D1B26 60%,#14121B 100%);color:#F6E7B8;overflow:hidden;cursor:pointer;transition:opacity .7s ease}
+#intro.gone{opacity:0;pointer-events:none}
+#intro canvas{position:absolute;inset:0;width:100%;height:100%}
+#intro .stage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));transition:transform 1.3s cubic-bezier(.7,0,.3,1)}
+#intro .imoon{position:absolute;top:12%;right:16%;width:64px;height:64px;fill:#F6E7B8;filter:drop-shadow(0 0 18px rgba(246,231,184,.6));opacity:0;animation:ifade 1.2s .1s ease-out forwards}
+#intro .house{width:min(64vw,280px);height:auto;overflow:visible;opacity:0;transform:translateY(16px);animation:iup 1s .3s ease-out forwards}
+#intro .house .line{fill:none;stroke:#F6E7B8;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+#intro .house .glow{fill:#FFCF6B;opacity:0;animation:ilight .6s 1.1s ease-out forwards}
+#intro .house .halo{fill:#FFCF6B;opacity:0;filter:blur(10px);animation:ihalo 1s 1.1s ease-out forwards}
+#intro .house .shut{fill:#2C2735;stroke:#F6E7B8;stroke-width:2.4;transform-box:fill-box;transition:transform .8s cubic-bezier(.5,0,.3,1)}
+#intro .house .sl{transform-origin:left center}
+#intro .house .sr{transform-origin:right center}
+#intro.open .house .shut{transform:scaleX(0)}
+#intro .msg{font-family:var(--serif);font-size:clamp(20px,5vw,28px);text-align:center;text-wrap:balance;margin:0;opacity:0;animation:iup 1s .9s ease-out forwards;color:#F6E7B8}
+#intro .msg small{display:block;font-family:var(--display);font-style:italic;font-size:.75em;opacity:.75;margin-top:4px}
+#intro .skip{position:absolute;z-index:2;bottom:max(20px,env(safe-area-inset-bottom,0px));right:max(16px,env(safe-area-inset-right,0px));background:rgba(255,255,255,.1);color:#F6E7B8;border:1px solid rgba(246,231,184,.35);border-radius:999px;padding:8px 16px;font:inherit;font-size:14px;cursor:pointer}
+#intro .skip:focus-visible{outline:2px solid #F6E7B8;outline-offset:2px}
+@keyframes ifade{to{opacity:1}}
+@keyframes iup{to{opacity:1;transform:none}}
+@keyframes ilight{to{opacity:1}}
+@keyframes ihalo{to{opacity:.55}}
+html.intro-on body{overflow:hidden}
+</style>
+  <canvas aria-hidden="true"></canvas>
+  <svg class="imoon" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 6a14 14 0 1 0 8 22A11 11 0 0 1 26 6z"/></svg>
+  <div class="stage">
+    <svg class="house" viewBox="0 0 200 150" aria-hidden="true">
+      <circle class="halo" cx="138" cy="94" r="30"/>
+      <path class="line" d="M28 140V86l30-30 30 30v54zM58 56h80l30 30H88M168 86v54H88"/>
+      <path class="line" d="M48 140v-26h20v26"/>
+      <path class="line" d="M10 140l9-24 9 24M180 140l9-24 9 24M2 142h196"/>
+      <rect class="glow" x="122" y="80" width="32" height="28"/>
+      <rect class="shut sl" x="122" y="80" width="16" height="28"/>
+      <rect class="shut sr" x="138" y="80" width="16" height="28"/>
+      <rect class="line" id="iwin" x="122" y="80" width="32" height="28"/>
+    </svg>
+    <p class="msg">구움별장에 오신 것을 환영합니다.<small>Gooum Villa</small></p>
+  </div>
+  <button type="button" class="skip">건너뛰기</button>
+</div>
+<script>
+(function(){
+  var el=document.getElementById('intro'),seen=false;
+  try{seen=sessionStorage.getItem('gv-intro')==='1';}catch(e){}
+  if(seen||matchMedia('(prefers-reduced-motion: reduce)').matches){el.remove();return;}
+  try{sessionStorage.setItem('gv-intro','1');}catch(e){}
+  document.documentElement.classList.add('intro-on');
+  var c=el.querySelector('canvas'),x=c.getContext('2d'),st=[],run=true;
+  function size(){var d=devicePixelRatio||1;c.width=innerWidth*d;c.height=innerHeight*d;x.setTransform(d,0,0,d,0,0);
+    st=[];for(var i=0;i<Math.round(innerWidth*innerHeight/3500);i++)st.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight*.85,s:Math.random()*1.5+.3,p:Math.random()*6.28,v:Math.random()*.004+.002});}
+  function draw(t){if(!run)return;x.clearRect(0,0,innerWidth,innerHeight);
+    st.forEach(function(a){x.globalAlpha=.25+.75*Math.abs(Math.sin(a.p+t*a.v));x.fillStyle='#F6E7B8';x.beginPath();x.arc(a.x,a.y,a.s,0,6.28);x.fill();});
+    requestAnimationFrame(draw);}
+  size();addEventListener('resize',size);requestAnimationFrame(draw);
+  var stage=el.querySelector('.stage'),timers=[],done=false;
+  function finish(){if(done)return;done=true;timers.forEach(clearTimeout);el.classList.add('gone');
+    document.documentElement.classList.remove('intro-on');
+    setTimeout(function(){run=false;el.remove();},750);}
+  function zoom(){var w=document.getElementById('iwin').getBoundingClientRect(),r=stage.getBoundingClientRect();
+    stage.style.transformOrigin=(w.left+w.width/2-r.left)+'px '+(w.top+w.height/2-r.top)+'px';
+    stage.style.transform='scale(14)';}
+  timers.push(setTimeout(function(){el.classList.add('open');},2300));
+  timers.push(setTimeout(zoom,3000));
+  timers.push(setTimeout(finish,3700));
+  el.addEventListener('click',finish);
+  addEventListener('keydown',function(e){if(e.key==='Escape'||e.key==='Enter')finish();});
+})();
+</script>
+
 <header class="awning">
   <div class="wrap">
     <div class="mark">
